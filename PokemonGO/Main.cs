@@ -17,79 +17,116 @@ namespace PokemonGO
 {
     public partial class Main : Form
     {
-        private PointLatLng Original;
-
-        private Specialized.Protocol.Manager Client;
+        private PointLatLng _currentLatLng;
+        private Specialized.Protocol.Manager _client;
+        private bool _pausedScanning;
+        private bool _customLatSet;
+        private PointLatLng _customLatLng;
 
         public Main()
         {
             InitializeComponent();
         }
 
-        private async void Form1_Load(object sender, EventArgs e)
-        {
-            CreateMap();
-
-            Client = new Specialized.Protocol.Manager(gMapControl1.Position.Lat, gMapControl1.Position.Lng);
-
-            if (await Client.PerformLogin(Settings.PTC_USERNAME, Settings.PTC_PASSWORD))
-            {
-                var Exploration = new Thread(new ThreadStart(Explore));
-
-                Exploration.Start();
-            }
-        }
-
-        private async void Explore()
+        private async void AttemptLogin()
         {
             try
             {
-                while (true)
+                txtHistory.AppendText(Environment.NewLine + "Attempting login...");
+                _client = new Specialized.Protocol.Manager(gMapControl1.Position.Lat, gMapControl1.Position.Lng);
+                if (!await _client.PerformLogin(Settings.PTC_USERNAME, Settings.PTC_PASSWORD))
                 {
-                    int X = 0;
-                    int Y = 0;
+                    btnLogin.Visible = true;
+                    txtHistory.AppendText(Environment.NewLine + "Login Failed!");
+                    return;
+                }
+                var exploration = new Thread(new ThreadStart(Explore));
+                exploration.Start();
+                btnLogin.Visible = false;
+                txtHistory.AppendText(Environment.NewLine + "Exploration started!");
+            }
+            catch (Exception ex)
+            {
+                txtHistory.AppendText(Environment.NewLine + ex.Message);
+            }
+        }
 
-                    int DX = 0;
-                    int DY = -1;
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            CreateMap();
+            AttemptLogin();
+        }
+        
+        private async void Explore()
+        {
+            var x = 0;
+            var y = 0;
+            var dx = 0;
+            var dy = -1;
 
-                    for (int i = 0; i < Settings.EXPLORATION_STEPS; i++)
+            try
+            {
+                if (_customLatSet)
+                {
+                    for (var i = 0; i < Settings.EXPLORATION_STEPS; i++)
                     {
-                        var Destination = Specialized.Exploration.Helper.CalculateNextStep(Original.Lat, Original.Lng, Settings.EXPLORATION_STEPS, ref X, ref Y, ref DX, ref DY);
+                        var destination = Specialized.Exploration.Helper.CalculateNextStep(_customLatLng.Lat, _customLatLng.Lng, Settings.EXPLORATION_STEPS, ref x, ref y, ref dx, ref dy);
+                        if (!await _client.RequestMove(destination.Lat, destination.Lng)) continue;
 
-                        if (await Client.RequestMove(Destination.Lat, Destination.Lng))
+                        gMapControl1.Overlays.FirstOrDefault().Markers.FirstOrDefault().Position = destination;
+
+                        var objects = await _client.GetNearbyPokemons();
+
+                        foreach (var pokemon in objects.Pokemons)
                         {
-                            gMapControl1.Overlays.FirstOrDefault().Markers.FirstOrDefault().Position = Destination;
-
-                            var Objects = await Client.GetNearbyPokemons();
-
-                            foreach (var Pokemon in Objects.Pokemons)
-                            {
-                                var Marker = Specialized.Pokemon.Utils.CreateMarker(Pokemon);
-
-                                gMapControl1.Overlays.FirstOrDefault().Markers.Add(Marker);
-                            }
-
-                            foreach (var Fort in Objects.Forts)
-                            {
-                                if (Fort.FortType != 1)
-                                {
-                                    var Marker = Specialized.Forts.Utils.CreateMarker(Fort);
-
-                                    gMapControl1.Overlays.FirstOrDefault().Markers.Add(Marker);
-                                }
-                            }
+                            var marker = Specialized.Pokemon.Utils.CreateMarker(pokemon);
+                            gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
                         }
 
-                        Thread.Sleep(Settings.STEP_DELAY * 1000);
+                        foreach (var fort in objects.Forts)
+                        {
+                            if (fort.FortType == 1) continue;
+                            var marker = Specialized.Forts.Utils.CreateMarker(fort);
+                            gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
+                        }
                     }
 
-                    Thread.Sleep(Settings.CLEAR_DELAY * 1000);
+                    _customLatSet = false;
+                }
+                else
+                {
+                    while (!_pausedScanning)
+                    {
+                        for (var i = 0; i < Settings.EXPLORATION_STEPS; i++)
+                        {
+                            var Destination = Specialized.Exploration.Helper.CalculateNextStep(_currentLatLng.Lat, _currentLatLng.Lng, Settings.EXPLORATION_STEPS, ref x, ref y, ref dx, ref dy);
 
-                    ClearMap();
+                            if (await _client.RequestMove(Destination.Lat, Destination.Lng))
+                            {
+                                gMapControl1.Overlays.FirstOrDefault().Markers.FirstOrDefault().Position = Destination;
+                                var objects = await _client.GetNearbyPokemons();
+                                foreach (var pokemon in objects.Pokemons)
+                                {
+                                    var marker = Specialized.Pokemon.Utils.CreateMarker(pokemon);
+                                    gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
+                                }
+                                foreach (var fort in objects.Forts)
+                                {
+                                    if (fort.FortType == 1) continue;
+                                    var marker = Specialized.Forts.Utils.CreateMarker(fort);
+                                    gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
+                                }
+                            }
+                            Thread.Sleep(Settings.STEP_DELAY*1000);
+                        }
+                        Thread.Sleep(Settings.CLEAR_DELAY*1000);
+                        ClearMap();
+                    }
                 }
             }
             catch (Exception e)
             {
+                //txtHistory.AppendText(Environment.NewLine + e.Message);
             }
         }
 
@@ -99,20 +136,16 @@ namespace PokemonGO
         {
             if (gMapControl1.InvokeRequired)
             {
-                ClearCallback Callback = new ClearCallback(ClearMap);
-
-                Invoke(Callback);
+                var callback = new ClearCallback(ClearMap);
+                Invoke(callback);
             }
             else
             {
                 var Overlay = gMapControl1.Overlays.FirstOrDefault();
-
-                if (Overlay != null)
+                if (Overlay == null) return;
+                for (var i = 1; i < Overlay.Markers.Count; i++)
                 {
-                    for (int i = 1; i < Overlay.Markers.Count; i++)
-                    {
-                        Overlay.Markers.RemoveAt(i);
-                    }
+                    Overlay.Markers.RemoveAt(i);
                 }
             }
         }
@@ -120,22 +153,55 @@ namespace PokemonGO
         private void CreateMap()
         {
             gMapControl1.DragButton = MouseButtons.Left;
-            GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
+            GMaps.Instance.Mode = AccessMode.ServerOnly;
             gMapControl1.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
             gMapControl1.GrayScaleMode = true;
-
             gMapControl1.SetPositionByKeywords(Settings.STARTING_LOCATION);
+            _currentLatLng = gMapControl1.Position;
 
-            Original = gMapControl1.Position;
+            var overlay = new GMapOverlay("Markers");
+            var position = new GMarkerGoogle(gMapControl1.Position, GMarkerGoogleType.blue_small)
+            {
+                ToolTipText = "Current scan location (" + _currentLatLng.Lat + ", " + _currentLatLng.Lng + ")"
+            };
 
-            GMapOverlay Overlay = new GMapOverlay("Markers");
+            overlay.Markers.Add(position);
+            gMapControl1.Overlays.Add(overlay);
+        }
 
-            var Position = new GMarkerGoogle(gMapControl1.Position, GMarkerGoogleType.blue_small);
-            Position.ToolTipText = "Currently Scanning...";
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearMap();
+        }
 
-            Overlay.Markers.Add(Position);
+        private void btnPause_Click(object sender, EventArgs e)
+        {
+            _pausedScanning = !_pausedScanning;
+            btnPause.Text = _pausedScanning ? "Start Scanning" : "Pause Scanning";
+        }
 
-            gMapControl1.Overlays.Add(Overlay);
+        private void gMapControl1_DoubleClick(object sender, EventArgs e)
+        {
+            var mouseEventArgs = (MouseEventArgs) e;
+            if (mouseEventArgs.Button != MouseButtons.Left) return;
+            if (!_pausedScanning) return;
+
+            var lat = gMapControl1.FromLocalToLatLng(mouseEventArgs.X, mouseEventArgs.Y).Lat;
+            var lng = gMapControl1.FromLocalToLatLng(mouseEventArgs.X, mouseEventArgs.Y).Lng;
+
+            _customLatSet = true;
+            _customLatLng = new PointLatLng
+            {
+                Lat = lat,
+                Lng = lng
+            };
+
+            Explore();
+        }
+
+        private void btnLogin_Click(object sender, EventArgs e)
+        {
+            AttemptLogin();
         }
     }
 }
