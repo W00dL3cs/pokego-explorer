@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PokemonGo.RocketAPI.GeneratedCode;
 
 namespace PokemonGO
 {
@@ -19,7 +20,7 @@ namespace PokemonGO
         private PointLatLng Original;
 
         private Specialized.Protocol.Manager Client;
-        
+
         public Main()
         {
             InitializeComponent();
@@ -79,10 +80,10 @@ namespace PokemonGO
                             }
                         }
 
-                        Thread.Sleep(5 * 1000);
+                        Thread.Sleep(Settings.STEP_DELAY * 1000);
                     }
 
-                    Thread.Sleep(60 * 1000);
+                    Thread.Sleep(Settings.CLEAR_DELAY * 1000);
 
                     ClearMap();
                 }
@@ -121,6 +122,7 @@ namespace PokemonGO
             gMapControl1.DragButton = MouseButtons.Left;
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
             gMapControl1.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
+            gMapControl1.GrayScaleMode = true;
 
             gMapControl1.SetPositionByKeywords(Settings.STARTING_LOCATION);
 
@@ -128,8 +130,8 @@ namespace PokemonGO
 
             GMapOverlay Overlay = new GMapOverlay("Markers");
 
-            var Position = new GMarkerGoogle(gMapControl1.Position, GMarkerGoogleType.green);
-            Position.ToolTipText = "Current Position";
+            var Position = new GMarkerGoogle(gMapControl1.Position, GMarkerGoogleType.blue_small);
+            Position.ToolTipText = "Currently Scanning...";
 
             Overlay.Markers.Add(Position);
 
