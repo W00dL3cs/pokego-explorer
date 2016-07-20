@@ -2,6 +2,8 @@
 
 This repository contains a proof-of-concept of a Pokemon GO Explorer (for nearby Pokemons, Gyms and Pokestops) written in C#.
 
+![alt tag](http://i.imgur.com/DZoi1yQ.png)
+
 
 ___
 
