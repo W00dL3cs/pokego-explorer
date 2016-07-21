@@ -32,18 +32,21 @@ namespace PokemonGO
         {
             try
             {
+                btnLogin.Visible = false;
                 txtHistory.AppendText(Environment.NewLine + "Attempting login...");
                 _client = new Specialized.Protocol.Manager(gMapControl1.Position.Lat, gMapControl1.Position.Lng);
                 if (!await _client.PerformLogin(Settings.PTC_USERNAME, Settings.PTC_PASSWORD))
                 {
                     btnLogin.Visible = true;
                     txtHistory.AppendText(Environment.NewLine + "Login Failed!");
+                    AttemptLogin();
                     return;
                 }
-                var exploration = new Thread(new ThreadStart(Explore));
-                exploration.Start();
                 btnLogin.Visible = false;
-                txtHistory.AppendText(Environment.NewLine + "Exploration started!");
+                txtHistory.AppendText(Environment.NewLine + "Logged In!");
+                gMapControl1.GrayScaleMode = false;
+                var exploration = new Thread(Explore);
+                exploration.Start();
             }
             catch (Exception ex)
             {
@@ -68,11 +71,10 @@ namespace PokemonGO
             {
                 if (_customLatSet)
                 {
-                    for (var i = 0; i < Settings.EXPLORATION_STEPS; i++)
+                    //txtHistory.AppendText(Environment.NewLine + "Manual scan started!");
+                    var destination = Specialized.Exploration.Helper.CalculateNextStep(_customLatLng.Lat, _customLatLng.Lng, Settings.EXPLORATION_STEPS, ref x, ref y, ref dx, ref dy);
+                    if (await _client.RequestMove(destination.Lat, destination.Lng))
                     {
-                        var destination = Specialized.Exploration.Helper.CalculateNextStep(_customLatLng.Lat, _customLatLng.Lng, Settings.EXPLORATION_STEPS, ref x, ref y, ref dx, ref dy);
-                        if (!await _client.RequestMove(destination.Lat, destination.Lng)) continue;
-
                         gMapControl1.Overlays.FirstOrDefault().Markers.FirstOrDefault().Position = destination;
 
                         var objects = await _client.GetNearbyPokemons();
@@ -89,12 +91,13 @@ namespace PokemonGO
                             var marker = Specialized.Forts.Utils.CreateMarker(fort);
                             gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
                         }
-                    }
 
+                    }
                     _customLatSet = false;
                 }
                 else
                 {
+                    //txtHistory.AppendText(Environment.NewLine + "Auto scan started!");
                     while (!_pausedScanning)
                     {
                         for (var i = 0; i < Settings.EXPLORATION_STEPS; i++)
@@ -105,26 +108,27 @@ namespace PokemonGO
                             {
                                 gMapControl1.Overlays.FirstOrDefault().Markers.FirstOrDefault().Position = Destination;
                                 var objects = await _client.GetNearbyPokemons();
-                                foreach (var pokemon in objects.Pokemons)
+                                foreach (var marker in objects.Pokemons.Select(Specialized.Pokemon.Utils.CreateMarker))
                                 {
-                                    var marker = Specialized.Pokemon.Utils.CreateMarker(pokemon);
                                     gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
                                 }
-                                foreach (var fort in objects.Forts)
+                                foreach (var marker in from fort in objects.Forts where fort.FortType != 1 select Specialized.Forts.Utils.CreateMarker(fort))
                                 {
-                                    if (fort.FortType == 1) continue;
-                                    var marker = Specialized.Forts.Utils.CreateMarker(fort);
                                     gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
                                 }
                             }
                             Thread.Sleep(Settings.STEP_DELAY*1000);
+                            if (_pausedScanning)
+                            {
+                                break;
+                            }
                         }
                         Thread.Sleep(Settings.CLEAR_DELAY*1000);
                         ClearMap();
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 //txtHistory.AppendText(Environment.NewLine + e.Message);
             }
@@ -178,9 +182,13 @@ namespace PokemonGO
         {
             _pausedScanning = !_pausedScanning;
             btnPause.Text = _pausedScanning ? "Start Scanning" : "Pause Scanning";
+            if (!_pausedScanning)
+            {
+                Explore();
+            }
         }
 
-        private void gMapControl1_DoubleClick(object sender, EventArgs e)
+        private void gMapControl1_Click(object sender, EventArgs e)
         {
             var mouseEventArgs = (MouseEventArgs) e;
             if (mouseEventArgs.Button != MouseButtons.Left) return;
