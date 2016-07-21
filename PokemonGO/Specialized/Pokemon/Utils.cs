@@ -20,6 +20,8 @@ namespace PokemonGO.Specialized.Pokemon
 
             var Result = new GMarkerGoogle(Position, (Bitmap)Bitmap.FromFile(string.Format("icons/{0}.png", ID)));
 
+            Result.Size = new Size(Settings.POKEMON_IMAGE_SIZE, Settings.POKEMON_IMAGE_SIZE);
+
             Result.ToolTipText = MakeTooltip(ID, Pokemon);
 
             return Result;
