@@ -16,7 +16,7 @@ namespace PokemonGO.Specialized.Forts
         {
             var Position = new GMap.NET.PointLatLng(Fort.Latitude, Fort.Longitude);
 
-            var Result = new GMarkerGoogle(Position, (Bitmap)Bitmap.FromFile(string.Format("forts/{0}.png", Fort.Team)));
+            var Result = new GMarkerGoogle(Position, (Bitmap)Bitmap.FromFile(string.Format("forts/{0}.png", (Fort.FortType != 1) ? Fort.Team : 4)));
 
             Result.ToolTipText = MakeTooltip(Fort);
 

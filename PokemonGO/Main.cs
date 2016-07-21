@@ -19,8 +19,9 @@ namespace PokemonGO
         private Thread Exploration;
 
         private delegate void ClearCallback();
+        private delegate void MarkerCallback(GMarkerGoogle Marker);
         private delegate void WriteCallback(string Line, bool Date);
-
+        
         public Main()
         {
             InitializeComponent();
@@ -120,6 +121,24 @@ namespace PokemonGO
             Exploration.Start();
         }
 
+        private void AddMarker(GMarkerGoogle Marker)
+        {
+            try
+            {
+                if (gMapControl1.InvokeRequired)
+                {
+                    var Callback = new MarkerCallback(AddMarker);
+
+                    Invoke(Callback, Marker);
+                }
+                else
+                {
+                    gMapControl1.Overlays.FirstOrDefault().Markers.Add(Marker);
+                }
+            }
+            catch { }
+        }
+
         private async void Explore()
         {
             var x = 0;
@@ -145,12 +164,12 @@ namespace PokemonGO
 
                         foreach (var Marker in Objects.Pokemons.Select(Specialized.Pokemon.Utils.CreateMarker))
                         {
-                            gMapControl1.Overlays.FirstOrDefault().Markers.Add(Marker); // TODO: Handle Pokemons in another class (perform operations of storing etc)
+                            AddMarker(Marker);
                         }
 
-                        foreach (var Marker in Objects.Forts.Where(Fort => Fort.FortType != 1).Select(Specialized.Forts.Utils.CreateMarker))
+                        foreach (var Marker in Objects.Forts/*.Where(Fort => Fort.FortType != 1)*/.Select(Specialized.Forts.Utils.CreateMarker))
                         {
-                            gMapControl1.Overlays.FirstOrDefault().Markers.Add(Marker);
+                            AddMarker(Marker);
                         }
                     }
 

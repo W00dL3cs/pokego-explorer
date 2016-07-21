@@ -56,7 +56,7 @@ namespace PokemonGO
             this.gMapControl1.GrayScaleMode = false;
             this.gMapControl1.HelperLineOption = GMap.NET.WindowsForms.HelperLineOptions.DontShow;
             this.gMapControl1.LevelsKeepInMemmory = 5;
-            this.gMapControl1.Location = new System.Drawing.Point(7, 5);
+            this.gMapControl1.Location = new System.Drawing.Point(3, 2);
             this.gMapControl1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.gMapControl1.MarkersEnabled = true;
             this.gMapControl1.MaxZoom = 20;
@@ -71,7 +71,7 @@ namespace PokemonGO
             this.gMapControl1.ScaleMode = GMap.NET.WindowsForms.ScaleModes.Integer;
             this.gMapControl1.SelectedAreaFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(65)))), ((int)(((byte)(105)))), ((int)(((byte)(225)))));
             this.gMapControl1.ShowTileGridLines = false;
-            this.gMapControl1.Size = new System.Drawing.Size(734, 527);
+            this.gMapControl1.Size = new System.Drawing.Size(742, 535);
             this.gMapControl1.TabIndex = 0;
             this.gMapControl1.Zoom = 15D;
             this.gMapControl1.Click += new System.EventHandler(this.gMapControl1_Click);
