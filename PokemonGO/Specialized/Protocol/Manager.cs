@@ -42,7 +42,7 @@ namespace PokemonGO.Specialized.Protocol
             return false;
         }
 
-        internal async Task<NearbyData> GetNearbyPokemons()
+        internal async Task<NearbyData> GetNearbyData()
         {
             try
             {
