@@ -35,7 +35,7 @@ namespace PokemonGO.Specialized.Pokemon
 
             Result += string.Format("Latitude: {0}. {3}Longitude: {1}. {2}", Pokemon.Latitude, Pokemon.Longitude, Environment.NewLine, Environment.NewLine);
 
-            Result += string.Format("Expiration date: {0}.", (Pokemon.ExpirationTimeMs > 0) ? _jan1st1970.AddMilliseconds(Pokemon.ExpirationTimeMs).ToShortTimeString() : "Never");
+            Result += string.Format("Expiration date: {0}.", (Pokemon.ExpirationTimeMs > 0) ? _jan1st1970.AddMilliseconds(Pokemon.ExpirationTimeMs).ToLocalTime().ToShortTimeString() : "Never");
 
             return Result;
         }

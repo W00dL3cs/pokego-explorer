@@ -3,6 +3,7 @@ using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using System;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -18,24 +19,38 @@ namespace PokemonGO
         private Thread Exploration;
 
         private delegate void ClearCallback();
-        private delegate void WriteCallback(string Line);
+        private delegate void WriteCallback(string Line, bool Date);
 
         public Main()
         {
             InitializeComponent();
+
+            InitLogger();
         }
 
-        private void WriteLine(string Line)
+        private void InitLogger()
+        {
+            WriteLine("Pokemon GO Explorer");
+            WriteLine("Copyright (C) 2016 - W00dL3cs");
+            WriteLine();
+        }
+
+        private void WriteLine()
+        {
+            WriteLine("", false);
+        }
+
+        private void WriteLine(string Line = "", bool Date = true)
         {
             if (txtHistory.InvokeRequired)
             {
                 var Callback = new WriteCallback(WriteLine);
 
-                Invoke(Callback, Line);
+                Invoke(Callback, Line, Date);
             }
             else
             {
-                txtHistory.AppendText(string.Format("[{0}] - {1}{2}", DateTime.Now, Line, Environment.NewLine));
+                txtHistory.AppendText(string.Format(((Date) ? "[{0}] - " : "") + "{1}{2}", DateTime.Now.ToShortTimeString(), Line, Environment.NewLine));
             }
         }
 
@@ -122,7 +137,7 @@ namespace PokemonGO
 
                     if (await Client.RequestMove(Destination.Lat, Destination.Lng))
                     {
-                        WriteLine(string.Format("Step #{0}. Moving to: ({1},{2}).", i, Destination.Lat, Destination.Lng));
+                        WriteLine(string.Format("[#{0}] Moving to: ({1},{2}).", i, Destination.Lat, Destination.Lng));
 
                         SetPlayerPosition(Destination);
 
@@ -206,7 +221,7 @@ namespace PokemonGO
         {
             CreateThread();
 
-            WriteLine(string.Format("Scanning started! Number of steps: {0}. Location: ({1},{2}).", Settings.EXPLORATION_STEPS, Position.Lat, Position.Lng));
+            WriteLine(string.Format("Scanning started! Number of steps: {0}.", Settings.EXPLORATION_STEPS));
 
             Specialized.Controls.Helper.SetEnabled(btnPause, false);
         }
@@ -240,5 +255,76 @@ namespace PokemonGO
         {
             AttemptLogin();
         }
+
+        #region GUI
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case 0x84:
+                    base.WndProc(ref m);
+                    if ((int)m.Result == 0x1)
+                        m.Result = (IntPtr)0x2;
+                    return;
+            }
+            base.WndProc(ref m);
+        }
+
+        private void Ex_Click(object sender, EventArgs e) //EXIT_APP
+        {
+            this.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e) //SquirBlue
+        {
+            this.BackgroundImage = Properties.Resources._7a50045ab03c115d698fb9f533f90f1c;
+            Exit_Button.BackgroundImage = Properties.Resources._7a50045ab03c115d698fb9f533f90f1c;
+            PokePoke.BackgroundImage = Properties.Resources._7a50045ab03c115d698fb9f533f90f1c;
+
+            MapBorder.BackColor = Color.MediumTurquoise;
+            label1.BackColor = Color.MediumTurquoise;
+            txtHistory.BackColor = Color.MediumTurquoise;
+            btnLogin.BackColor = Color.MediumTurquoise;
+            btnPause.BackColor = Color.MediumTurquoise;
+        }
+
+        private void button2_Click(object sender, EventArgs e) //CharRed
+        {
+            this.BackgroundImage = Properties.Resources.e815a787fb770107c34238b202c40a1c;
+            Exit_Button.BackgroundImage = Properties.Resources.e815a787fb770107c34238b202c40a1c;
+            PokePoke.BackgroundImage = Properties.Resources.e815a787fb770107c34238b202c40a1c;
+
+            MapBorder.BackColor = Color.Coral;
+            label1.BackColor = Color.Coral;
+            txtHistory.BackColor = Color.Coral;
+            btnLogin.BackColor = Color.Coral;
+            btnPause.BackColor = Color.Coral;
+        }
+
+        private void button3_Click(object sender, EventArgs e) //BulbGreen
+        {
+            this.BackgroundImage = Properties.Resources.f60536429bb5c705c7427136c92cea84;
+            Exit_Button.BackgroundImage = Properties.Resources.f60536429bb5c705c7427136c92cea84;
+            PokePoke.BackgroundImage = Properties.Resources.f60536429bb5c705c7427136c92cea84;
+
+            MapBorder.BackColor = Color.LightGreen;
+            label1.BackColor = Color.LightGreen;
+            txtHistory.BackColor = Color.LightGreen;
+            btnLogin.BackColor = Color.LightGreen;
+            btnPause.BackColor = Color.LightGreen;
+        }
+
+        private void PokePoke_Click(object sender, EventArgs e)
+        {
+            if (label1.Visible == true)
+            {
+                label1.Visible = false;
+            }
+            else
+            {
+                label1.Visible = true;
+            };
+        }
+        #endregion
     }
 }

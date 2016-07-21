@@ -101,6 +101,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -126,6 +127,18 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\7a50045ab03c115d698fb9f533f90f1c.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\e815a787fb770107c34238b202c40a1c.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\f60536429bb5c705c7427136c92cea84.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pokemon-wallpaper-HD-for-desktop-1.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
