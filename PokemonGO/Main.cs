@@ -167,7 +167,7 @@ namespace PokemonGO
                             AddMarker(Marker);
                         }
 
-                        foreach (var Marker in Objects.Forts/*.Where(Fort => Fort.FortType != 1)*/.Select(Specialized.Forts.Utils.CreateMarker))
+                        foreach (var Marker in Objects.Forts.Where(Fort => Fort.FortType != 1).Select(Specialized.Forts.Utils.CreateMarker))
                         {
                             AddMarker(Marker);
                         }
