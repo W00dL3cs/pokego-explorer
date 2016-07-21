@@ -62,29 +62,6 @@ namespace PokemonGO
             AttemptLogin();
         }
 
-        private async void ExploreArea()
-        {
-            var x = 0;
-            var y = 0;
-            var dx = 0;
-            var dy = -1;
-
-            var destination = Specialized.Exploration.Helper.CalculateNextStep(_currentLatLng.Lat, _currentLatLng.Lng, Settings.EXPLORATION_STEPS, ref x, ref y, ref dx, ref dy);
-            if (await _client.RequestMove(destination.Lat, destination.Lng))
-            {
-                gMapControl1.Overlays.FirstOrDefault().Markers.FirstOrDefault().Position = destination;
-                var objects = await _client.GetNearbyPokemons();
-                foreach (var marker in objects.Pokemons.Select(Specialized.Pokemon.Utils.CreateMarker))
-                {
-                    gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
-                }
-                foreach (var marker in from fort in objects.Forts where fort.FortType != 1 select Specialized.Forts.Utils.CreateMarker(fort))
-                {
-                    gMapControl1.Overlays.FirstOrDefault().Markers.Add(marker);
-                }
-            }
-        }
-        
         private async void Explore()
         {
             var x = 0;
