@@ -12,6 +12,8 @@ namespace PokemonGO.Specialized.Pokemon
 {
     public static class Utils
     {
+		private static readonly DateTime _jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         internal static GMarkerGoogle CreateMarker(MapPokemonProto Pokemon)
         {
             var ID = GetPokemonID(Pokemon.PokedexTypeId.ToString());
@@ -33,7 +35,7 @@ namespace PokemonGO.Specialized.Pokemon
 
             Result += string.Format("Latitude: {0}. {3}Longitude: {1}. {2}", Pokemon.Latitude, Pokemon.Longitude, Environment.NewLine, Environment.NewLine);
 
-            Result += string.Format("Expiration date: {0}.", (Pokemon.ExpirationTimeMs > 0) ? new DateTime(Pokemon.ExpirationTimeMs).ToShortTimeString() : "Never");
+            Result += string.Format("Expiration date: {0}.", (Pokemon.ExpirationTimeMs > 0) ?_jan1st1970.AddMilliseconds(Pokemon.ExpirationTimeMs).ToShortTimeString() : "Never");
 
             return Result;
         }
