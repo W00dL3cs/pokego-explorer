@@ -2,7 +2,7 @@
 
 This repository contains a proof-of-concept of a Pokemon GO Explorer (for nearby Pokemons, Gyms and Pokestops) written in C#.
 
-![alt tag](http://i.imgur.com/DZoi1yQ.png)
+![alt tag](http://i.imgur.com/aQjtCtA.jpg)
 
 
 ___
@@ -26,6 +26,7 @@ ___
 
 # Special thanks
 
+  - Sodanakin for the wonderful GUI: https://www.reddit.com/user/sodanakin
   - FeroxRev for his Pokemon GO API: https://github.com/FeroxRev/Pokemon-Go-Rocket-API
   - GreatMaps for the Google Maps API implementation: https://greatmaps.codeplex.com/
   
