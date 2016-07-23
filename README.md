@@ -9,18 +9,13 @@ ___
 
 # Usage
 
-  - Set up the right dependencies (they're all in the Debug folder)
-  - Edit the details contained in `Settings.cs`:
-  ```
-  internal static readonly string PTC_USERNAME = "Your PTC Username";
-  internal static readonly string PTC_PASSWORD = "Your PTC Password";
-  
-  internal static readonly int EXPLORATION_STEPS = 30; // Number of steps (increase this to explore a wider area)
-  
-  internal static readonly string STARTING_LOCATION = "Starting Location"; // Example: Time Square, New York City
-  ```
+  - Set up the right dependencies (they're all in the `bin/Debug` folder)
+  - Edit the details contained in the file `Configuration` (found in the `bin/Debug` folder)
   - Build the project!
   
+## Note
+
+  When using Google Auth, remember the device code gets copied to your clipboard: just paste it when asked.
 
 ___
 
