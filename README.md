@@ -14,7 +14,8 @@ ___
   - [x] Updated API used for Client <-> Server communication
   - [x] Simple configuration file
   - [x] Pokemons Blacklist
-  - [ ] Pokemons Database
+  - [x] Pokemons Database
+  - [ ] Advanced exploring algorithm
   
 ___
 
