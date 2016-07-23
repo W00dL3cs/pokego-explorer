@@ -10,11 +10,13 @@ namespace PokemonGO.Specialized.Pokemon
     public class Manager
     {
         private List<int> Blacklist;
+        private Storage.Manager Storage;
         private Dictionary<ulong, MapPokemon> Pokemons;
-
+        
         public Manager(string Filter)
         {
             Blacklist = new List<int>();
+            Storage = new Specialized.Storage.Manager("Database.sqlite");
             Pokemons = new Dictionary<ulong, MapPokemon>();
 
             InitFilter(Filter);
@@ -44,6 +46,8 @@ namespace PokemonGO.Specialized.Pokemon
             try
             {
                 Pokemons.Add(Pokemon.EncounterId, Pokemon);
+
+                Storage.Insert(Pokemon);
 
                 return (!Blacklist.Contains(Pokemon.GetID()));
             }
