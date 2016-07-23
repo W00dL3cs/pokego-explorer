@@ -4,40 +4,50 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static PokemonGo.RocketAPI.GeneratedCode.MapObjectsResponse.Types.Payload.Types;
 
 namespace PokemonGO.Specialized.Protocol
 {
     public class Manager
     {
+        private Settings Details;
+        private Authentication Auth;
         private PokemonGo.RocketAPI.Client Client;
 
-        internal Manager(double Latitude, double Longitude)
+        internal Manager(int Authentication, double Latitude, double Longitude)
         {
-            Client = new PokemonGo.RocketAPI.Client(Latitude, Longitude);
+            Auth = (Authentication)Authentication;
+
+            Details = new Settings(Latitude, Longitude);
+
+            Client = new PokemonGo.RocketAPI.Client(Details);
         }
 
         internal async Task<bool> PerformLogin(string Username, string Password)
         {
             try
             {
-                await Client.LoginPtc(Username, Password);
-
-                var Result = await Client.GetServer();
-
-                if (Result != null)
+                if (Auth == Authentication.PTC)
                 {
-                    // TODO: Check if the order is correct... and in case, if these operations are really required at login
-
-                    await Client.GetProfile();
-                    await Client.GetSettings();
-                    await Client.GetMapObjects();
-                    await Client.GetInventory();
+                    await Client.DoPtcLogin(Username, Password);
+                }
+                else
+                {
+                    await Client.DoGoogleLogin();
                 }
 
-                return (Result != null); // TODO: Real check
+                await Client.SetServer();
+
+                // TODO: Check if the order is correct... and in case, if these operations are really required at login
+
+                await Client.GetProfile();
+                await Client.GetSettings();
+                await Client.GetMapObjects();
+                await Client.GetInventory();
+
+                return true; // TODO: Real check
             }
-            catch { }
+            catch (Exception e)
+            { }
 
             return false;
         }
@@ -48,9 +58,9 @@ namespace PokemonGO.Specialized.Protocol
             {
                 var Objects = await Client.GetMapObjects();
 
-                var Pokemons = Objects.Payload[0].Profile.SelectMany(x => x.MapPokemon);
+                var Pokemons = Objects.MapCells.SelectMany(x => x.CatchablePokemons);
 
-                var Forts = Objects.Payload[0].Profile.SelectMany(x => x.Fort);
+                var Forts = Objects.MapCells.SelectMany(x => x.Forts);
 
                 return new NearbyData(Forts, Pokemons);
             }
@@ -63,7 +73,7 @@ namespace PokemonGO.Specialized.Protocol
         {
             try
             {
-                var Result = await Client.UpdatePlayerLocation(Latitude, Longitude);
+                var Result = await Client.UpdatePlayerLocation(Latitude, Longitude, 0);
 
                 return (Result != null); // TODO: Real check
             }

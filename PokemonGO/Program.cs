@@ -14,6 +14,8 @@ namespace PokemonGO
         [STAThread]
         static void Main()
         {
+            PokemonGo.RocketAPI.Logger.SetLogger(new Specialized.Logging.Logger());
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Main());

@@ -59,7 +59,7 @@
     <Reference Include="Google.Protobuf, Version=3.0.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604" />
     <Reference Include="Pokemon Go Rocket API, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Pokemon-Go-Rocket-API-master\PokemonGo\RocketAPI\bin\Debug\Pokemon Go Rocket API.dll</HintPath>
+      <HintPath>..\Pokemon-Go-Rocket-API-master\PokemonGo.RocketAPI\bin\Debug\Pokemon Go Rocket API.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -82,14 +82,17 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Specialized\Configuration\Manager.cs" />
     <Compile Include="Specialized\Controls\Helper.cs" />
     <Compile Include="Specialized\Exploration\Helper.cs" />
     <Compile Include="Specialized\Forts\Utils.cs" />
-    <Compile Include="Specialized\Pokemon\Utils.cs" />
+    <Compile Include="Specialized\Logging\Logger.cs" />
+    <Compile Include="Specialized\Pokemon\Extensions.cs" />
+    <Compile Include="Specialized\Pokemon\Manager.cs" />
+    <Compile Include="Specialized\Protocol\Authentication.cs" />
     <Compile Include="Specialized\Protocol\Containers\NearbyData.cs" />
     <Compile Include="Specialized\Protocol\Manager.cs" />
-    <Compile Include="Specialized\Threads\Helper.cs" />
+    <Compile Include="Specialized\Protocol\Settings.cs" />
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>

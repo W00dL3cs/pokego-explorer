@@ -1,6 +1,7 @@
 ﻿using GMap.NET;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
+using PokemonGO.Specialized.Pokemon;
 using System;
 using System.Data;
 using System.Drawing;
@@ -14,6 +15,8 @@ namespace PokemonGO
     {
         private PointLatLng Position;
         private Specialized.Protocol.Manager Client;
+        private Specialized.Pokemon.Manager Pokemons;
+        private Specialized.Configuration.Manager Configuration;
 
         private bool IsExploring;
         private Thread Exploration;
@@ -26,14 +29,18 @@ namespace PokemonGO
         {
             InitializeComponent();
 
-            InitLogger();
+            Init();
         }
 
-        private void InitLogger()
+        private void Init()
         {
             WriteLine("Pokemon GO Explorer");
             WriteLine("Copyright (C) 2016 - W00dL3cs");
             WriteLine();
+            
+            Configuration = new Specialized.Configuration.Manager("Configuration");
+
+            Pokemons = new Specialized.Pokemon.Manager(Configuration.GetValue<string>("POKEMON_BLACKLIST"));
         }
 
         private void WriteLine()
@@ -64,12 +71,13 @@ namespace PokemonGO
 
         private void CreateMap()
         {
+            gMapControl1.ShowCenter = false;
             gMapControl1.GrayScaleMode = true;
             gMapControl1.DragButton = MouseButtons.Left;
             GMaps.Instance.Mode = AccessMode.ServerOnly;
 
             gMapControl1.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
-            gMapControl1.SetPositionByKeywords(Settings.STARTING_LOCATION);
+            gMapControl1.SetPositionByKeywords(Configuration.GetValue<string>("STARTING_LOCATION"));
 
             Position = gMapControl1.Position;
 
@@ -91,9 +99,9 @@ namespace PokemonGO
                 Specialized.Controls.Helper.SetVisible(btnLogin, false);
                 Specialized.Controls.Helper.SetVisible(btnPause, false);
                 
-                Client = new Specialized.Protocol.Manager(gMapControl1.Position.Lat, gMapControl1.Position.Lng);
+                Client = new Specialized.Protocol.Manager(Configuration.GetValue<int>("LOGIN_AUTH"), gMapControl1.Position.Lat, gMapControl1.Position.Lng);
 
-                if (!await Client.PerformLogin(Settings.PTC_USERNAME, Settings.PTC_PASSWORD))
+                if (!await Client.PerformLogin(Configuration.GetValue<string>("LOGIN_USERNAME"), Configuration.GetValue<string>("LOGIN_PASSWORD")))
                 {
                     WriteLine("Login failed! Please try again.");
 
@@ -148,11 +156,15 @@ namespace PokemonGO
 
             IsExploring = true;
 
+            var Step = Configuration.GetValue<int>("STEP_DELAY");
+            var Clear = Configuration.GetValue<int>("CLEAR_DELAY");
+            var Limit = Configuration.GetValue<int>("EXPLORATION_STEPS");
+            
             try
             {
-                for (int i = 1; i <= Settings.EXPLORATION_STEPS; i++)
+                for (int i = 1; i <= Limit; i++)
                 {
-                    var Destination = Specialized.Exploration.Helper.CalculateNextStep(Position.Lat, Position.Lng, Settings.EXPLORATION_STEPS, ref x, ref y, ref dx, ref dy);
+                    var Destination = Specialized.Exploration.Helper.CalculateNextStep(Position.Lat, Position.Lng, Limit, ref x, ref y, ref dx, ref dy);
 
                     if (await Client.RequestMove(Destination.Lat, Destination.Lng))
                     {
@@ -162,23 +174,29 @@ namespace PokemonGO
 
                         var Objects = await Client.GetNearbyData();
 
-                        foreach (var Marker in Objects.Pokemons.Select(Specialized.Pokemon.Utils.CreateMarker))
+                        if (Objects != null)
                         {
-                            AddMarker(Marker);
-                        }
+                            foreach (var Pokemon in Objects.Pokemons)
+                            {
+                                if (Pokemons.AddPokemon(Pokemon))
+                                {
+                                    AddMarker(Pokemon.GetMarker());
+                                }
+                            }
 
-                        foreach (var Marker in Objects.Forts.Where(Fort => Fort.FortType != 1).Select(Specialized.Forts.Utils.CreateMarker))
-                        {
-                            AddMarker(Marker);
+                            foreach (var Marker in Objects.Forts.Where(Fort => Fort.Type == AllEnum.FortType.Gym).Select(Specialized.Forts.Utils.CreateMarker))
+                            {
+                                AddMarker(Marker);
+                            }
                         }
                     }
 
-                    Thread.Sleep(Settings.STEP_DELAY * 1000);
+                    Thread.Sleep(Step * 1000);
                 }
 
-                WriteLine(string.Format("Waiting {0} seconds before cleaning map...", Settings.CLEAR_DELAY));
+                WriteLine(string.Format("Waiting {0} seconds before cleaning map...", Clear));
 
-                Thread.Sleep(Settings.CLEAR_DELAY * 1000);
+                Thread.Sleep(Clear * 1000);
 
                 WriteLine("Cleaning map...");
 
@@ -221,6 +239,8 @@ namespace PokemonGO
             {
                 try
                 {
+                    Pokemons.Clear();
+
                     var Overlay = gMapControl1.Overlays.FirstOrDefault();
 
                     if (Overlay != null)
@@ -240,7 +260,7 @@ namespace PokemonGO
         {
             CreateThread();
 
-            WriteLine(string.Format("Scanning started! Number of steps: {0}.", Settings.EXPLORATION_STEPS));
+            WriteLine(string.Format("Scanning started! Number of steps: {0}.", Configuration.GetValue<int>("EXPLORATION_STEPS")));
 
             Specialized.Controls.Helper.SetEnabled(btnPause, false);
         }
