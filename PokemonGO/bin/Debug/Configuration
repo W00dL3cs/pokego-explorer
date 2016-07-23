@@ -1,0 +1,31 @@
+//////////////////////////////////////////////////
+//												//
+//	   Pokemon GO Explorer - Configuration		//
+//												//
+//		  Copyright (C) 2016 - W00dL3cs         //
+//												//
+//////////////////////////////////////////////////
+
+// Login type (0 = Google, 1 = Pokemon Trainer Club)
+LOGIN_AUTH=1
+
+// PTC/Google username
+LOGIN_USERNAME=Username
+
+// PTC/Google password
+LOGIN_PASSWORD=Password
+
+// Number of seconds to wait before each steps
+STEP_DELAY=3
+
+// Number of seconds to wait before clearing the map
+CLEAR_DELAY=60
+
+// Number of steps (increase this to explore a wider area)
+EXPLORATION_STEPS=30
+
+// Starting location for exploration (Example: Time Square, New York City)
+STARTING_LOCATION=Time Square, New York City
+
+// Comma-separated list of Pokemons to hide from the map (Example: 16,19,41,84)
+POKEMON_BLACKLIST=16,19,41,84
