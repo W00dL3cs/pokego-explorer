@@ -4,23 +4,29 @@ This repository contains a proof-of-concept of a Pokemon GO Explorer (for nearby
 
 ![alt tag](http://i.imgur.com/aQjtCtA.jpg)
 
+___
 
+# Features
+
+  - [x] Pokemon Trainer Club (PTC) / Google Authentication
+  - [x] Scan nearby area for Pokemons
+  - [x] Change location using mouse (double-click or right-click)
+  - [x] Updated API used for Client <-> Server communication
+  - [x] Simple configuration file
+  - [x] Pokemons Blacklist
+  - [ ] Pokemons Database
+  
 ___
 
 # Usage
 
-  - Set up the right dependencies (they're all in the Debug folder)
-  - Edit the details contained in `Settings.cs`:
-  ```
-  internal static readonly string PTC_USERNAME = "Your PTC Username";
-  internal static readonly string PTC_PASSWORD = "Your PTC Password";
+  1. Set up the right dependencies (they're all in the `bin/Debug` folder)
+  2. Edit the details contained in the file `Configuration` (found in the `bin/Debug` folder)
+  3. Build the project!
   
-  internal static readonly int EXPLORATION_STEPS = 30; // Number of steps (increase this to explore a wider area)
-  
-  internal static readonly string STARTING_LOCATION = "Starting Location"; // Example: Time Square, New York City
-  ```
-  - Build the project!
-  
+#### Note
+
+  When using Google Auth, remember the device code gets copied to your clipboard: just paste it when asked.
 
 ___
 
